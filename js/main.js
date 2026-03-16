@@ -184,18 +184,36 @@ function initContactForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = form.querySelector('[type="submit"]');
-    const original = btn.textContent;
+    const original = btn.innerHTML;
     btn.textContent = 'Sending…';
     btn.disabled = true;
 
-    // Placeholder — wire to Formspree or similar
-    await new Promise(r => setTimeout(r, 1200));
-    btn.textContent = 'Message sent!';
-    form.reset();
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.disabled = false;
-    }, 3000);
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (res.ok) {
+        btn.textContent = '✓ Message sent!';
+        form.reset();
+        setTimeout(() => {
+          btn.innerHTML = original;
+          btn.disabled = false;
+        }, 4000);
+      } else {
+        throw new Error('Server error');
+      }
+    } catch {
+      btn.textContent = 'Failed — try emailing directly';
+      btn.style.background = '#c0392b';
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.disabled = false;
+        btn.style.background = '';
+      }, 4000);
+    }
   });
 }
 
